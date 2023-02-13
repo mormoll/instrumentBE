@@ -85,16 +85,16 @@ namespace instrumentBE
             serialPort.Open();
             serialPort.WriteLine(command);
             string serialResponse = serialPort.ReadLine();
-            serialPort.Close();
+                        serialPort.Close();
             return serialResponse;
 
-
+                          
         }
     }
 
                         //serialPort.Close();
                           
-        }
+    }
     //}
     /*static string SerialCommand(string portName, string command) 
     {
@@ -106,6 +106,4 @@ namespace instrumentBE
         string serialResponse = serialPort.ReadLine();
         return serialResponse;
     }*/
-
-//}
 
