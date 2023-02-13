@@ -5,8 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO.Ports;
 using System.Web;
+
 using System.Net.Sockets;
 using System.Net;
+
 
 namespace instrumentBE
 {
@@ -17,6 +19,7 @@ namespace instrumentBE
             string portName = "COM3";
             int baudRate = 9600;
             SerialPort serialPort = new SerialPort(portName, baudRate);
+
             //serialPort.Open();
             //Console.WriteLine("Connected to Ardurino");
             
@@ -54,10 +57,21 @@ namespace instrumentBE
             }
 
             /*Console.WriteLine("Waiting for response");
+
+            serialPort.Open();
+            Console.WriteLine("Connected to Ardurino");
+            serialPort.WriteLine("readscaled");
+            
+            //string serialResponse = serialPort.ReadLine();
+            //Console.WriteLine("Arduino response:  " + serialResponse);
+
+
+
                         string serialResponse = serialPort.ReadLine();
 
                         Console.WriteLine("Arduino response:  " + serialResponse);
                         Console.ReadKey();
+
                         serialPort.Close();*/
 
         }
@@ -77,5 +91,21 @@ namespace instrumentBE
 
         }
     }
-}
+
+                        //serialPort.Close();
+                          
+        }
+    //}
+    /*static string SerialCommand(string portName, string command) 
+    {
+        
+        int baudRate = 9600;
+        SerialPort serialPort = new SerialPort(portName, baudRate);
+        serialPort.Open();
+        serialPort.WriteLine(command);
+        string serialResponse = serialPort.ReadLine();
+        return serialResponse;
+    }*/
+
+//}
 
