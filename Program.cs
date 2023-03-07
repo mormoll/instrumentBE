@@ -78,7 +78,7 @@ namespace instrumentBE
             {
                 
                 Console.WriteLine(ex.Message);
-                Console.WriteLine("EXxiting-...");
+                Console.WriteLine("Exiting-...");
                 Console.ReadKey();
                 return;
             }
