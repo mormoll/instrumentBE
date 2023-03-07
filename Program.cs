@@ -41,7 +41,7 @@ namespace instrumentBE
                 return;
             }
 
-            //serial configuratin. Load form file
+            //serial configuration. Load form file
             StreamReader serialConfReader = new StreamReader(filenameSerialConfig);
             serialPortName = serialConfReader.ReadLine();
             Console.WriteLine("Serial port Configured; " + serialPortName);
