@@ -122,16 +122,31 @@ namespace instrumentBE
                     }
                     else if (commandReceived.Substring(0, 8) == "comports")
                     {
-                        string[] ComPorts = System.IO.Ports.SerialPort.GetPortNames();
-                        foreach (string port in ComPorts)
+                        // Get the list of COM ports
+                        string[] comPorts = System.IO.Ports.SerialPort.GetPortNames();
+
+                        // Join the COM port names into a single string using a semicolon as the separator
+                        string comPortString = string.Join(";", comPorts);
+
+                        // Send the COM port list to the client
+                        byte[] sendBuffer = Encoding.ASCII.GetBytes(comPortString);
+                        client.Send(sendBuffer);
+
+                        // Split the received COM port string at the semicolon delimiter
+                        string[] receivedComPorts = commandReceived.Substring(9).Split(';');
+
+                        // Do something with the received COM port names, such as populating a combobox
+                        // In this example, we will simply print them to the console
+                        foreach (string port in receivedComPorts)
                         {
-                            Console.WriteLine(port);
-                            sendComPorts += port + ";";
+                            if (!string.IsNullOrWhiteSpace(port))
+                            {
+                                Console.WriteLine(port);
+                            }
                         }
 
-                        client.Send(Encoding.ASCII.GetBytes(sendComPorts));
+                        // Close the client socket
                         client.Close();
-                        sendComPorts = "comports:";
                     }
                     else 
                     {
@@ -146,13 +161,14 @@ namespace instrumentBE
 
                     
                 }
-                catch (Exception ex) 
+                catch (Exception ex)
                 {
-                    throw;
+                    // Log the exception or display an error message to the user
+                    Console.WriteLine($"An error occurred: {ex.Message}");
                 }
-               
-                
-                
+
+
+
             }
 
             /*Console.WriteLine("Waiting for response");
