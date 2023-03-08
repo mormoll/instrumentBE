@@ -10,6 +10,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.IO;
 
+
 namespace instrumentBE
 {
     internal class Program
@@ -18,11 +19,11 @@ namespace instrumentBE
         {
             string filenameSerialConfig = "serial.conf";
             string serialPortName = "";
+            string sendComPorts="comports:";
+
             
 
-
-
-
+           
 
             //Introduksjon
             Console.WriteLine("instrumentBE has stared....");
@@ -106,7 +107,8 @@ namespace instrumentBE
 
                     string commandReceived = Encoding.ASCII.GetString(buffer, 0, bytesReceived);
                     Console.WriteLine("Received command: " + commandReceived);
-                    if (commandReceived.Substring(0,7) == "comport:")
+
+                    if (commandReceived.Substring(0,8) == "comport:")
                     {
                         serialPortName = commandReceived.Substring(8, commandReceived.Length-8);
                         Console.WriteLine("Serial port Configured; " + serialPortName);
@@ -116,6 +118,20 @@ namespace instrumentBE
 
                         client.Send(Encoding.ASCII.GetBytes("Serial port configurated: " + serialPortName));
                         client.Close();
+
+                    }
+                    else if (commandReceived.Substring(0, 8) == "comports")
+                    {
+                        string[] ComPorts = System.IO.Ports.SerialPort.GetPortNames();
+                        foreach (string port in ComPorts)
+                        {
+                            Console.WriteLine(port);
+                            sendComPorts += port + ";";
+                        }
+
+                        client.Send(Encoding.ASCII.GetBytes(sendComPorts));
+                        client.Close();
+                        sendComPorts = "comports:";
                     }
                     else 
                     {
