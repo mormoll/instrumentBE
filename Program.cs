@@ -131,6 +131,7 @@ namespace instrumentBE
                         // Send the COM port list to the client
                         byte[] sendBuffer = Encoding.ASCII.GetBytes(comPortString);
                         client.Send(sendBuffer);
+                        client.Close();
 
                         // Split the received COM port string at the semicolon delimiter
                         string[] receivedComPorts = commandReceived.Substring(9).Split(';');
