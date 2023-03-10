@@ -122,7 +122,7 @@ namespace instrumentBE
                     }
                     else if (commandReceived.Substring(0, 8) == "comports")
                     {
-                        // Get the list of COM ports
+                        // Get list of COM ports
                         string[] comPorts = System.IO.Ports.SerialPort.GetPortNames();
 
                         // Join the COM port names into a single string using a semicolon as the separator
