@@ -9,20 +9,56 @@ using System.Web;
 using System.Net.Sockets;
 using System.Net;
 using System.IO;
-
+using System.Threading;
+using System.Runtime.CompilerServices;
+using System.ComponentModel;
+using Microsoft.Data.SqlClient;
+using System.Globalization;
 
 namespace instrumentBE
 {
+    
+
     internal class Program
     {
+        
+        static string serialPortName = "";
+        static string instrumentID = "";
+        
         static void Main(string[] args)
         {
             string filenameSerialConfig = "serial.conf";
-            string serialPortName = "";
-            string sendComPorts="comports:";
+            string filenameInstrumentConfig = "instid.conf";
+            string sendComPorts = "comports:";
+            
+            
 
             
 
+
+            bool runInBackrgound = false;
+            bool enableLogging = false;
+
+            Thread thread = new Thread(Measurement);
+
+            //ConsoleKeyInfo cki;
+
+
+
+            // Iteretate through the command line arguments
+            foreach (string arg in args) 
+            {
+                switch (arg) 
+                {
+                    case "-b":
+                        runInBackrgound |= true;
+                        break;
+                    case "-l":
+                        enableLogging = true;
+                        break;
+                }
+            
+            }
            
 
             //Introduksjon
@@ -46,13 +82,14 @@ namespace instrumentBE
             StreamReader serialConfReader = new StreamReader(filenameSerialConfig);
             serialPortName = serialConfReader.ReadLine();
             Console.WriteLine("Serial port Configured; " + serialPortName);
-            serialConfReader.Close();   
+            serialConfReader.Close();
+            //InstrumentID
+            StreamReader InstrumentConfReader = new StreamReader(filenameInstrumentConfig);
+            instrumentID = InstrumentConfReader.ReadLine();
+            Console.WriteLine("Instrument ID Configured; " + instrumentID);
+            InstrumentConfReader.Close();
 
-            /*string commandResponse = SerialCommand("COM3", "readconf");
-            Console.WriteLine("Arduino response:  " + commandResponse);
-            Console.ReadKey();
-            */
-                       
+
             string portName = "COM3";
             int baudRate = 9600;
             SerialPort serialPort = new SerialPort(portName, baudRate);
@@ -64,11 +101,9 @@ namespace instrumentBE
             string serverIP = "127.0.0.1";
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Parse(serverIP), 5000);
             Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            //string serialResponse = serialPort.ReadLine();
-            //Console.WriteLine("Arduino response:  " + serialResponse);
-
-            //TCP socet server
-            //bind to endpoint and start servertry
+            
+            
+           
 
             try 
             {
@@ -86,20 +121,19 @@ namespace instrumentBE
             Console.WriteLine("Server started. Waiting for connection...");
 
 
-            //server.Bind(endpoint);
 
-            //Output info
-            //Console.WriteLine("Server started. Waiting for connection...");
-            //serialPort.Open();
-            //if(log)WriteToLogFile(("Server started. Waiting for clients
-            
+            thread.Start();
             while (true)
             {
                 try 
                 {
+                    //Console.WriteLine(SerialCommand(serialPortName, "Readscaled"));
+                    
+                    //Send to InstrumentDataDB
+                    
                     Socket client = server.Accept();
                     
-                    //Socket client = server.Accept();
+                    
                     Console.WriteLine("Client connected...");
                     //data recived
                     byte[] buffer = new byte[1024];
@@ -171,27 +205,54 @@ namespace instrumentBE
 
 
             }
+            thread.Join();
 
-            /*Console.WriteLine("Waiting for response");
 
-            serialPort.Open();
-            Console.WriteLine("Connected to Ardurino");
-            serialPort.WriteLine("readscaled");
             
-            //string serialResponse = serialPort.ReadLine();
-            //Console.WriteLine("Arduino response:  " + serialResponse);
-
-
-
-                        string serialResponse = serialPort.ReadLine();
-
-                        Console.WriteLine("Arduino response:  " + serialResponse);
-                        Console.ReadKey();
-
-                        serialPort.Close();*/
-
+            
         }
 
+        private static void Measurement()
+        {
+            double measurement = 0.0;
+            string serialResponse = "";
+            string splitResponse = "";
+            string connectionString = "Data Source=127.0.0.1,1434;Initial Catalog=InstrumentData;Persist Security Info=True;User ID=sa;Password=S3cur3P@ssW0rd!;Encrypt=False";
+            SqlConnection sqlConnection = new SqlConnection(connectionString);
+
+
+            string sqlInsertMeasurement = "INSERT INTO InstrumentConfDBSet(InstrumentId, Timestamp, Value) "
+                                           + "VALUES (@InstrumentId, @Timestamp, @Value)";
+
+
+
+
+            while (true)
+            {
+                
+
+                serialResponse = SerialCommand(serialPortName, "readscaled");
+                splitResponse = serialResponse.Split(';')[1];
+                splitResponse = splitResponse.Substring(0,splitResponse.Length - 2);
+                Console.WriteLine(splitResponse);
+
+                measurement = Convert.ToDouble(splitResponse, CultureInfo.InvariantCulture);
+
+
+                sqlConnection.Open();
+                SqlCommand command = new SqlCommand(sqlInsertMeasurement, sqlConnection);
+
+                command.Parameters.AddWithValue("@InstrumentId", Convert.ToInt32(instrumentID));
+                command.Parameters.AddWithValue("@Timestamp", DateTime.Now);
+                command.Parameters.AddWithValue("@Value", measurement);
+
+                command.ExecuteNonQuery();
+                sqlConnection.Close();
+
+                Thread.Sleep(1000);
+            }
+            
+        }
         static string SerialCommand(string portName, string command) 
         {
             int baudRate = 9600;
