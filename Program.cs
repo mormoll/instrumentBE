@@ -17,24 +17,19 @@ using System.Globalization;
 
 namespace instrumentBE
 {
-    
+
 
     internal class Program
     {
-        
+
         static string serialPortName = "";
         static string instrumentID = "";
-        
+
         static void Main(string[] args)
         {
             string filenameSerialConfig = "serial.conf";
             string filenameInstrumentConfig = "instid.conf";
             string sendComPorts = "comports:";
-            
-            
-
-            
-
 
             bool runInBackrgound = false;
             bool enableLogging = false;
@@ -46,9 +41,9 @@ namespace instrumentBE
 
 
             // Iteretate through the command line arguments
-            foreach (string arg in args) 
+            foreach (string arg in args)
             {
-                switch (arg) 
+                switch (arg)
                 {
                     case "-b":
                         runInBackrgound |= true;
@@ -57,20 +52,20 @@ namespace instrumentBE
                         enableLogging = true;
                         break;
                 }
-            
+
             }
-           
+
 
             //Introduksjon
             Console.WriteLine("instrumentBE has stared....");
             Console.WriteLine("please enter TCP port number");
             string serverPort = Console.ReadLine();
 
-            try 
+            try
             {
                 int portNumber = Convert.ToInt32(serverPort);
             }
-            catch (FormatException) 
+            catch (FormatException)
             {
                 Console.WriteLine("Portnumber is not a number! Exiting....");
                 Console.WriteLine("Press a key to exit...");
@@ -81,16 +76,18 @@ namespace instrumentBE
             //serial configuration. Load form file
             StreamReader serialConfReader = new StreamReader(filenameSerialConfig);
             serialPortName = serialConfReader.ReadLine();
-            Console.WriteLine("Serial port Configured; " + serialPortName);
             serialConfReader.Close();
+
             //InstrumentID
             StreamReader InstrumentConfReader = new StreamReader(filenameInstrumentConfig);
             instrumentID = InstrumentConfReader.ReadLine();
             Console.WriteLine("Instrument ID Configured; " + instrumentID);
             InstrumentConfReader.Close();
-
-
-            string portName = "COM3";
+            
+            //Comports
+            ListAvailablePorts();
+            Console.WriteLine("Enter the port name:");
+            string portName = Console.ReadLine();
             int baudRate = 9600;
             SerialPort serialPort = new SerialPort(portName, baudRate);
 
@@ -101,18 +98,18 @@ namespace instrumentBE
             string serverIP = "127.0.0.1";
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Parse(serverIP), 5000);
             Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            
-            
-           
 
-            try 
+
+
+
+            try
             {
                 server.Bind(endpoint);
                 server.Listen(10);
             }
-            catch(SocketException ex) 
+            catch (SocketException ex)
             {
-                
+
                 Console.WriteLine(ex.Message);
                 Console.WriteLine("Exiting-...");
                 Console.ReadKey();
@@ -122,18 +119,18 @@ namespace instrumentBE
 
 
 
-            thread.Start();
+            //thread.Start();
             while (true)
             {
-                try 
+                try
                 {
                     //Console.WriteLine(SerialCommand(serialPortName, "Readscaled"));
-                    
+
                     //Send to InstrumentDataDB
-                    
+
                     Socket client = server.Accept();
-                    
-                    
+
+
                     Console.WriteLine("Client connected...");
                     //data recived
                     byte[] buffer = new byte[1024];
@@ -142,9 +139,9 @@ namespace instrumentBE
                     string commandReceived = Encoding.ASCII.GetString(buffer, 0, bytesReceived);
                     Console.WriteLine("Received command: " + commandReceived);
 
-                    if (commandReceived.Substring(0,8) == "comport:")
+                    if (commandReceived.Substring(0, 8) == "comport:")
                     {
-                        serialPortName = commandReceived.Substring(8, commandReceived.Length-8);
+                        serialPortName = commandReceived.Substring(8, commandReceived.Length - 8);
                         Console.WriteLine("Serial port Configured; " + serialPortName);
                         StreamWriter serialConfWrite = new StreamWriter(filenameSerialConfig);
                         serialConfWrite.WriteLine(serialPortName);
@@ -183,7 +180,7 @@ namespace instrumentBE
                         // Close the client socket
                         client.Close();
                     }
-                    else 
+                    else
                     {
                         string commandResponse = SerialCommand(serialPortName, commandReceived);
                         Console.WriteLine(commandResponse);
@@ -194,7 +191,7 @@ namespace instrumentBE
                         Console.WriteLine("Clinet disconnected...");
                     }
 
-                    
+
                 }
                 catch (Exception ex)
                 {
@@ -208,8 +205,8 @@ namespace instrumentBE
             thread.Join();
 
 
-            
-            
+
+
         }
 
         private static void Measurement()
@@ -229,11 +226,11 @@ namespace instrumentBE
 
             while (true)
             {
-                
+
 
                 serialResponse = SerialCommand(serialPortName, "readscaled");
                 splitResponse = serialResponse.Split(';')[1];
-                splitResponse = splitResponse.Substring(0,splitResponse.Length - 2);
+                splitResponse = splitResponse.Substring(0, splitResponse.Length - 2);
                 Console.WriteLine(splitResponse);
 
                 measurement = Convert.ToDouble(splitResponse, CultureInfo.InvariantCulture);
@@ -251,9 +248,9 @@ namespace instrumentBE
 
                 Thread.Sleep(1000);
             }
-            
+
         }
-        static string SerialCommand(string portName, string command) 
+        static string SerialCommand(string portName, string command)
         {
             int baudRate = 9600;
             string serialResponse = "";
@@ -269,19 +266,29 @@ namespace instrumentBE
             {
                 Console.WriteLine("SerialPort failed....");
                 serialResponse = "SerialPort failed";
-        }
+            }
             return serialResponse;
         }
+
+        private static void ListAvailablePorts()
+        {
+            string[] ports = SerialPort.GetPortNames();
+
+            Console.WriteLine("Available ports:");
+            foreach (string port in ports)
+            {
+                Console.WriteLine(port);
+            }
+        }
     }
 
-                        
 
-                  
-    }
+
+
+}
 //}
 /*static string SerialCommand(string portName, string command) 
 {
-
     int baudRate = 9600;
     string serialResponse =""
     SerialPort serialPort = new SerialPort(portName, baudRate);
@@ -301,4 +308,3 @@ namespace instrumentBE
         return serialResponse;
    
 }*/
-
