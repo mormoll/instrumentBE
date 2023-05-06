@@ -90,16 +90,18 @@ namespace instrumentBE
                 return;
             }
 
+            
             //serial configuration. Load form file
             StreamReader serialConfReader = new StreamReader(filenameSerialConfig);
             serialPortName = serialConfReader.ReadLine();
             serialConfReader.Close();
 
-            //InstrumentID
-            StreamReader InstrumentConfReader = new StreamReader(filenameInstrumentConfig);
-            instrumentID = InstrumentConfReader.ReadLine();
-            Console.WriteLine("Instrument ID Configured; " + instrumentID);
-            InstrumentConfReader.Close();
+            
+            ////InstrumentID
+            //StreamReader InstrumentConfReader = new StreamReader(filenameInstrumentConfig);
+            //instrumentID = InstrumentConfReader.ReadLine();
+            //Console.WriteLine("Instrument ID Configured; " + instrumentID);
+            //InstrumentConfReader.Close();
             
             //Comports
             ListAvailablePorts();
@@ -135,23 +137,19 @@ namespace instrumentBE
             // Start the measurment thred if logging is enabled
             if (enableLogging)
             {
+                //InstrumentID
+                StreamReader InstrumentConfReader = new StreamReader(filenameInstrumentConfig);
+                instrumentID = InstrumentConfReader.ReadLine();
+                Console.WriteLine("Instrument ID Configured; " + instrumentID);
+                InstrumentConfReader.Close();
                 thread.Start();
             }
 
-            //if (enableLogging && !runInBackrgound)
-            //{
-            //    thread = new Thread(Measurement);
-            //    thread.Start();
-            //}
-
-            //thread.Start();
             while (true)
             {
                 try
                 {
-                    //Console.WriteLine(SerialCommand(serialPortName, "Readscaled"));
-
-                    //Send to InstrumentDataDB
+                 
 
                     Socket client = server.Accept();
 
@@ -193,7 +191,6 @@ namespace instrumentBE
                         string[] receivedComPorts = commandReceived.Substring(9).Split(';');
 
                         // Do something with the received COM port names, such as populating a combobox
-                        // In this example, we will simply print them to the console
                         foreach (string port in receivedComPorts)
                         {
                             if (!string.IsNullOrWhiteSpace(port))
@@ -239,10 +236,12 @@ namespace instrumentBE
             double measurement = 0.0;
             string serialResponse = "";
             string splitResponse = "";
-            string connectionString = "Data Source=127.0.0.1,1434;Initial Catalog=InstrumentData;Persist Security Info=True;User ID=sa;Password=S3cur3P@ssW0rd!;Encrypt=False";
-            SqlConnection sqlConnection = new SqlConnection(connectionString);
+            string connectionString1 = "Data Source=127.0.0.1,1434;Initial Catalog=InstrumentData;Persist Security Info=True;User ID=sa;Password=S3cur3P@ssW0rd!;Encrypt=False";
+            string connectionString2 = "Data Source=127.0.0.1;Initial Catalog=InstrumentSys;User ID=sa;Password=S3cur3P@ssW0rd!;Encrypt=False";
+            SqlConnection sqlConnection = new SqlConnection(connectionString1);
+            SqlConnection sqlConnection1 = new SqlConnection(connectionString2);
 
-
+            string sqlSelectInstrumentID = "SELECT Instrument_id FROM InstrumentSet";
             string sqlInsertMeasurement = "INSERT INTO InstrumentConfDBSet(InstrumentId, Timestamp, Value) "
                                            + "VALUES (@InstrumentId, @Timestamp, @Value)";
 
@@ -251,8 +250,7 @@ namespace instrumentBE
 
             while (true)
             {
-
-
+                // Read measurement from serial port
                 serialResponse = SerialCommand(serialPortName, "readscaled");
                 splitResponse = serialResponse.Split(';')[1];
                 splitResponse = splitResponse.Substring(0, splitResponse.Length - 2);
@@ -260,14 +258,12 @@ namespace instrumentBE
 
                 measurement = Convert.ToDouble(splitResponse, CultureInfo.InvariantCulture);
 
-
+                // Insert measurment int InstrumentConfDBSet table
                 sqlConnection.Open();
                 SqlCommand command = new SqlCommand(sqlInsertMeasurement, sqlConnection);
-
                 command.Parameters.AddWithValue("@InstrumentId", Convert.ToInt32(instrumentID));
                 command.Parameters.AddWithValue("@Timestamp", DateTime.Now);
                 command.Parameters.AddWithValue("@Value", measurement);
-
                 command.ExecuteNonQuery();
                 sqlConnection.Close();
 
