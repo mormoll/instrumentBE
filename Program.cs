@@ -61,17 +61,7 @@ namespace instrumentBE
                     break;
             }
 
-            //// Start the measurment thred if logging is enabled
-            //if (enableLogging)
-            //{
-            //    thread.Start();
-            //}
-
-            //if (enableLogging && !runInBackrgound)
-            //{
-            //    thread = new Thread(Measurement);
-            //    thread.Start();
-            //}
+           
 
             //Introduksjon
             Console.WriteLine("instrumentBE has stared....");
@@ -97,12 +87,6 @@ namespace instrumentBE
             serialConfReader.Close();
 
             
-            ////InstrumentID
-            //StreamReader InstrumentConfReader = new StreamReader(filenameInstrumentConfig);
-            //instrumentID = InstrumentConfReader.ReadLine();
-            //Console.WriteLine("Instrument ID Configured; " + instrumentID);
-            //InstrumentConfReader.Close();
-            
             //Comports
             ListAvailablePorts();
             Console.WriteLine("Enter the port name:");
@@ -113,8 +97,8 @@ namespace instrumentBE
 
             //serialPort.Open();
             //Console.WriteLine("Connected to Ardurino");
-
-            string serverIP = "127.0.0.1";
+            Console.WriteLine("Enter ip address:");
+            string serverIP = Console.ReadLine();
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Parse(serverIP), 5000);
             Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
@@ -136,13 +120,21 @@ namespace instrumentBE
 
             // Start the measurment thred if logging is enabled
             if (enableLogging)
+
             {
                 //InstrumentID
+                Console.WriteLine("Connection to instrumentDataDB established");
                 StreamReader InstrumentConfReader = new StreamReader(filenameInstrumentConfig);
                 instrumentID = InstrumentConfReader.ReadLine();
                 Console.WriteLine("Instrument ID Configured; " + instrumentID);
                 InstrumentConfReader.Close();
+
                 thread.Start();
+            }
+
+            if (runInBackrgound)
+            {
+                Console.WriteLine("Program is running in the background");
             }
 
             while (true)
