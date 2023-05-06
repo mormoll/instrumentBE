@@ -24,37 +24,54 @@ namespace instrumentBE
 
         static string serialPortName = "";
         static string instrumentID = "";
+        ///static SerialPort serialPort = null;
 
         static void Main(string[] args)
         {
             string filenameSerialConfig = "serial.conf";
             string filenameInstrumentConfig = "instid.conf";
             string sendComPorts = "comports:";
+            string logFileName = null; // Initialize the log file name variable
 
             bool runInBackrgound = false;
             bool enableLogging = false;
 
             Thread thread = new Thread(Measurement);
+            // Add variables to keep track of threads
+            Thread measurementThread = null;
+            Thread serverThread = null;
 
-            //ConsoleKeyInfo cki;
 
 
+            //bool enableThread = false; // Add this variable to check if the thread should be started
 
+            Console.WriteLine("Enter -l to enable logging or -b to run in background mode:");
+            string input = Console.ReadLine();
             // Iteretate through the command line arguments
-            foreach (string arg in args)
+            switch (input)
             {
-                switch (arg)
-                {
-                    case "-b":
-                        runInBackrgound |= true;
-                        break;
-                    case "-l":
-                        enableLogging = true;
-                        break;
-                }
-
+                case "-b":
+                    runInBackrgound = true;
+                    break;
+                case "-l":
+                    enableLogging = true;
+                    break;
+                default:
+                    Console.WriteLine($"Unknown argument: {input}");
+                    break;
             }
 
+            //// Start the measurment thred if logging is enabled
+            //if (enableLogging)
+            //{
+            //    thread.Start();
+            //}
+
+            //if (enableLogging && !runInBackrgound)
+            //{
+            //    thread = new Thread(Measurement);
+            //    thread.Start();
+            //}
 
             //Introduksjon
             Console.WriteLine("instrumentBE has stared....");
@@ -100,8 +117,6 @@ namespace instrumentBE
             Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
 
-
-
             try
             {
                 server.Bind(endpoint);
@@ -117,7 +132,17 @@ namespace instrumentBE
             }
             Console.WriteLine("Server started. Waiting for connection...");
 
+            // Start the measurment thred if logging is enabled
+            if (enableLogging)
+            {
+                thread.Start();
+            }
 
+            //if (enableLogging && !runInBackrgound)
+            //{
+            //    thread = new Thread(Measurement);
+            //    thread.Start();
+            //}
 
             //thread.Start();
             while (true)
@@ -258,11 +283,19 @@ namespace instrumentBE
             try
             {
                 serialPort.Open();
-                serialPort.WriteLine(command);
-                serialResponse = serialPort.ReadLine();
-                serialPort.Close();
+                if (serialPort.IsOpen) 
+                {
+                    serialPort.WriteLine(command);
+                    serialResponse = serialPort.ReadLine();
+                    serialPort.Close();
+                }
+                else
+                {
+                    Console.WriteLine("SerialPort failed....");
+                    serialResponse = "SerialPort failed";
+                }
             }
-            catch (System.IO.IOException)
+            catch (IOException)
             {
                 Console.WriteLine("SerialPort failed....");
                 serialResponse = "SerialPort failed";
@@ -286,25 +319,3 @@ namespace instrumentBE
 
 
 }
-//}
-/*static string SerialCommand(string portName, string command) 
-{
-    int baudRate = 9600;
-    string serialResponse =""
-    SerialPort serialPort = new SerialPort(portName, baudRate);
-    try 
-        {
-            serialPort.Open();
-        serialPort.WriteLine(command);
-        serialResponse = serialPort.ReadLine();
-        serialPort.Close();
-        }
-        catch (System.IO.IOExcrption)
-        {
-            Console.Writeline("SerialPort failed....");
-            serialResponse = "failed"
-           
-        }
-        return serialResponse;
-   
-}*/
