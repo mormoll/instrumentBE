@@ -113,7 +113,7 @@ namespace instrumentBE
                 }
                 else
                 {
-                    Console.WriteLine($"Invalid port name: {portName}. Please enter a valid port name.");
+                    Console.WriteLine($"Invalid port name: {portName}. Please enter a valid port name or check.");
                 }
             }
 
