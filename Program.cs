@@ -45,23 +45,31 @@ namespace instrumentBE
 
             //bool enableThread = false; // Add this variable to check if the thread should be started
 
-            Console.WriteLine("Enter -l to enable logging or -b to run in background mode:");
-            string input = Console.ReadLine();
-            // Iteretate through the command line arguments
-            switch (input)
+            // Loop until valid input is entered
+            while (true)
             {
-                case "-b":
+                Console.WriteLine("Enter -l to enable logging or -b to run in background mode:");
+                string input = Console.ReadLine();
+
+                // Check for valid input
+                if (input == "-b")
+                {
                     runInBackrgound = true;
                     break;
-                case "-l":
+                }
+                else if (input == "-l")
+                {
                     enableLogging = true;
                     break;
-                default:
+                }
+                else
+                {
                     Console.WriteLine($"Unknown argument: {input}");
-                    break;
+                    Console.WriteLine("Please enter a valid argument.");
+                }
             }
 
-           
+
 
             //Introduksjon
             Console.WriteLine("instrumentBE has stared....");
@@ -86,17 +94,32 @@ namespace instrumentBE
             serialPortName = serialConfReader.ReadLine();
             serialConfReader.Close();
 
-            
-            //Comports
+
+            ////Comports
+            //ListAvailablePorts();
+            //Console.WriteLine("Enter the port name:");
+            //string portName = Console.ReadLine();
+            //int baudRate = 9600;
+            //SerialPort serialPort = new SerialPort(portName, baudRate);
             ListAvailablePorts();
-            Console.WriteLine("Enter the port name:");
-            string portName = Console.ReadLine();
+            string portName;
+            while (true)
+            {
+                Console.WriteLine("Enter the port name:");
+                portName = Console.ReadLine();
+                if (SerialPort.GetPortNames().Contains(portName))
+                {
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine($"Invalid port name: {portName}. Please enter a valid port name.");
+                }
+            }
+
             int baudRate = 9600;
             SerialPort serialPort = new SerialPort(portName, baudRate);
 
-
-            //serialPort.Open();
-            //Console.WriteLine("Connected to Ardurino");
             Console.WriteLine("Enter ip address:");
             string serverIP = Console.ReadLine();
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Parse(serverIP), 5000);
