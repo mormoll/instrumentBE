@@ -116,7 +116,7 @@ namespace instrumentBE
                 Console.ReadKey();
                 return;
             }
-            Console.WriteLine("Server started. Waiting for connection...");
+            Console.WriteLine("Server started. BE is listening. Waiting for connection...");
 
             // Start the measurment thred if logging is enabled
             if (enableLogging)
@@ -134,7 +134,7 @@ namespace instrumentBE
 
             if (runInBackrgound)
             {
-                Console.WriteLine("Program is running in the background");
+                Console.WriteLine("BE runs in backrgound");
             }
 
             while (true)
