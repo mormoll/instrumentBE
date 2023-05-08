@@ -94,14 +94,9 @@ namespace instrumentBE
             serialPortName = serialConfReader.ReadLine();
             serialConfReader.Close();
 
-
-            ////Comports
-            //ListAvailablePorts();
-            //Console.WriteLine("Enter the port name:");
-            //string portName = Console.ReadLine();
-            //int baudRate = 9600;
-            //SerialPort serialPort = new SerialPort(portName, baudRate);
+            CheckSerialPorts();
             ListAvailablePorts();
+
             string portName;
             while (true)
             {
@@ -113,7 +108,7 @@ namespace instrumentBE
                 }
                 else
                 {
-                    Console.WriteLine($"Invalid port name: {portName}. Please enter a valid port name or check.");
+                    Console.WriteLine($"Invalid port name: {portName}. Please enter a valid port name or check that instrument is connected.");
                 }
             }
 
@@ -139,7 +134,15 @@ namespace instrumentBE
                 Console.ReadKey();
                 return;
             }
-            Console.WriteLine("Server started. BE is listening. Waiting for connection...");
+            
+            if (enableLogging)
+            {
+                Console.WriteLine("Server started with logging enabled.  ");
+            }
+            else if (runInBackrgound)
+            {
+                Console.WriteLine("Server started in background mode. BE is listening. Waiting for connection...");
+            }
 
             // Start the measurment thred if logging is enabled
             if (enableLogging)
@@ -155,10 +158,7 @@ namespace instrumentBE
                 thread.Start();
             }
 
-            if (runInBackrgound)
-            {
-                Console.WriteLine("BE runs in backrgound");
-            }
+
 
             while (true)
             {
@@ -242,8 +242,6 @@ namespace instrumentBE
             thread.Join();
 
 
-
-
         }
 
         private static void Measurement()
@@ -257,11 +255,7 @@ namespace instrumentBE
             SqlConnection sqlConnection1 = new SqlConnection(connectionString2);
 
             string sqlSelectInstrumentID = "SELECT Instrument_id FROM InstrumentSet";
-            string sqlInsertMeasurement = "INSERT INTO InstrumentConfDBSet(InstrumentId, Timestamp, Value) "
-                                           + "VALUES (@InstrumentId, @Timestamp, @Value)";
-
-
-
+            string sqlInsertMeasurement = "INSERT INTO InstrumentConfDBSet(InstrumentId, Timestamp, Value) ";
 
             while (true)
             {
@@ -324,7 +318,20 @@ namespace instrumentBE
                 Console.WriteLine(port);
             }
         }
+
+        private static void CheckSerialPorts()
+        {
+            if (SerialPort.GetPortNames().Length == 0)
+            {
+                Console.WriteLine("No serial ports found. Please check that the instrument is connected and try again.");
+                Console.WriteLine("Press any key to restart the program...");
+                Console.ReadKey();
+                // Restart the program by calling the main method again
+                Main(new string[] { });
+            }
+        }
     }
+
 
 
 
