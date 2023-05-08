@@ -255,7 +255,8 @@ namespace instrumentBE
             SqlConnection sqlConnection1 = new SqlConnection(connectionString2);
 
             string sqlSelectInstrumentID = "SELECT Instrument_id FROM InstrumentSet";
-            string sqlInsertMeasurement = "INSERT INTO InstrumentConfDBSet(InstrumentId, Timestamp, Value) ";
+            string sqlInsertMeasurement = "INSERT INTO InstrumentConfDBSet(InstrumentId, Timestamp, Value) "
+                                           + "VALUES (@InstrumentId, @Timestamp, @Value)";
 
             while (true)
             {
